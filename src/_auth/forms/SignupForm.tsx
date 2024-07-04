@@ -15,9 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { SignupValidation } from "@/lib/validation";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loader from '@/components/shared/Loader'
-import { useCreateUserAccountMutation } from "@/lib/react-query/queryAndMutation";
+import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/queryAndMutation";
+import { useUserContext } from "@/context/AuthContext";
 
 
 
@@ -26,7 +27,12 @@ const SignupForm = () => {
   
   const { toast } = useToast()
 
-  const {mutateAsync : createUserAccount, isLoading: isCreatingUser} = useCreateUserAccountMutation();
+  const {checkAuthUser, isLoading: isUserLoading} = useUserContext()
+
+  const {mutateAsync : createUserAccount, isPending: isCreatingAccount} = useCreateUserAccount();
+  const {mutateAsync : singInAccount, isPending: isSigningIn} = useSignInAccount();
+
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
@@ -47,16 +53,29 @@ const SignupForm = () => {
       });
     }
 
-    // const session = await singInAccount();
+    const session = await singInAccount({
+      email: values.email, 
+      password: values.password
+    });
 
+    if(!session){
+      return toast({title: "Sign in failed. Please try again."})
+    }
+
+    const isLoggedIn = await checkAuthUser();
+    if(isLoggedIn){
+      navigate("/")
+    }else{
+      toast({title:"Sign up failed. Please try again."})
+    }
   }
 
   return (
     <>
       <Form {...form}>
         <div className="sm:w-420 flex-center flex-col">
-          <img src="/assets/images/logo_1.png" alt="logo" className="w-52" />
-          <h2 className="h3-bold md:h2-bold sm:pt-12">Create a new account</h2>
+          <img src="/assets/images/logo_1_removebg.png" alt="logo" className="w-52" />
+          <h2 className="h3-bold md:h2-bold sm:pt-4">Create a new account</h2>
           <p className="text-light-3 small-medium md:base-regular mt-2">
             To use Asocial, please enter your account details
           </p>
@@ -114,7 +133,7 @@ const SignupForm = () => {
               )}
             />
             <Button type="submit" className="shad-button_primary">
-              {isCreatingUser ?
+              {isCreatingAccount ?
               (
                 <div className="flex center gap-2">
                   <Loader/> Loading...
