@@ -7,7 +7,7 @@ import QueryProvider from "./lib/react-query/QueryProvider.tsx";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <QueryProvider>
-      <AuthProvider>
+      <AuthProvider ider>
         <App />
       </AuthProvider>
     </QueryProvider>
