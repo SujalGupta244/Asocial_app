@@ -4,7 +4,7 @@ import {
     useQueryClient,
     useInfiniteQuery,
 } from '@tanstack/react-query'
-import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getInfiniteUsers, getPostById, getRecentPosts, getUserById, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost, updateUser } from '../appwrite/api'
+import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, getRecentPosts, getUserById, getUsers, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost, updateUser } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from '@/types'
 import { QUERY_KEYS } from './queryKeys'
 
@@ -141,20 +141,22 @@ export const useDeletePost = () =>{
         }
     })
 }
-
-export const useGetPosts = () =>{
+  
+export const useGetPosts = () => {
     return useInfiniteQuery({
-        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-        queryFn : getInfinitePosts, 
-        getNextPageParam : (lastPage) => {
-            
-            if(lastPage && lastPage.documents.length === 0) return null;
-            const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-
-            return lastId;
+      queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+      queryFn: getInfinitePosts ,
+      initialPageParam: 0,
+      getNextPageParam: (lastPage: any) => {
+        if (lastPage && lastPage.documents.length === 0) {
+          return null;
         }
-    })
-}
+  
+        const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+        return lastId;
+      },
+    });
+};
 
 export const useSearchPosts = (searchTerm : string) =>{
     return useQuery({
@@ -163,19 +165,27 @@ export const useSearchPosts = (searchTerm : string) =>{
         enabled: !!searchTerm
     })
 }
-export const useGetUsers = () => {
-    return useInfiniteQuery({
-      queryKey: ["getInfiniteUsers"],
-      queryFn: getInfiniteUsers,
-      getNextPageParam : (lastPage) => {
-            
-        if(lastPage && lastPage.documents.length === 0) return null;
-        const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
 
-        return lastId;
-    },
+export const useGetUsers = (limit?: number) => {
+    return useQuery({
+      queryKey: [QUERY_KEYS.GET_USERS],
+      queryFn: () => getUsers(limit),
     });
 };
+  
+// export const useGetUsers = () => {
+//     return useInfiniteQuery({
+//       queryKey: ["getInfiniteUsers"],
+//       queryFn: getInfiniteUsers,
+//       getNextPageParam : (lastPage) => {
+            
+//         if(lastPage && lastPage.documents.length === 0) return null;
+//         const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+
+//         return lastId;
+//     },
+//     });
+// };
 
 
 export const useGetUserById = (userId: string) => {
